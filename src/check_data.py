@@ -25,3 +25,24 @@ for orbit_name, filename in files.items():
     print("Number of orbits:", len(rows))
     print("Number of columns:", len(rows[0]))
     print("Columns:", header)
+
+
+
+
+import numpy as np
+
+print("\n--- Orbit Frequency Analysis ---")
+
+for orbit_name, filename in files.items():
+    file_path = DATA_DIR / filename
+    data = np.loadtxt(file_path, delimiter=",", skiprows=1)
+
+    if orbit_name == "DRO":
+        frequencies = data[:, 7]
+    else:
+        frequencies = np.concatenate([data[:, 7], data[:, 8]])
+
+    print(f"\n{orbit_name}")
+    print("Minimum frequency:", np.min(frequencies))
+    print("Maximum frequency:", np.max(frequencies))
+    print("Average frequency:", np.mean(frequencies))
