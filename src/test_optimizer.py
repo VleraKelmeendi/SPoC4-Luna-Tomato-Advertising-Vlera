@@ -1,15 +1,16 @@
-from optimizer import create_empty_solution, set_spacecraft
+from optimizer import create_empty_solution
+from lta_udp import celestial_morse_code
 
-num_orbits = 779
+# Initialize the official evaluator
+udp = celestial_morse_code()
 
-solution = create_empty_solution(num_orbits)
+# Create an empty solution
+solution = create_empty_solution(udp.num_orbits)
 
-# Vendosim 3 spacecraft ne orbiten 10
-solution = set_spacecraft(solution, 10, 3)
+# Evaluate the solution
+result = udp.fitness(solution, postprocess=True)
 
-# Vendosim 2 spacecraft ne orbiten 20
-solution = set_spacecraft(solution, 20, 2)
-
-print("Spacecraft in orbit 10:", solution[10])
-print("Spacecraft in orbit 20:", solution[20])
-print("Total selected spacecraft:", sum(solution[:num_orbits]))
+print("Number of orbits:", udp.num_orbits)
+print("Objective:", result[0])
+print("Selected spacecraft:", result[1])
+print("MSE:", result[2])

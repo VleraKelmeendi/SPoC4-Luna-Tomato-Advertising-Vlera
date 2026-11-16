@@ -42,3 +42,30 @@ def set_spacecraft(solution, orbit_index, number):
     solution[orbit_index] = number
 
     return solution
+
+
+def set_phase(solution, orbit_index, spacecraft_index, phase):
+    """
+    Set the phase of a spacecraft in a specific orbit.
+    """
+
+    num_orbits = len(solution) // (MAX_PER_ORBIT + 1)
+
+    if orbit_index < 0 or orbit_index >= num_orbits:
+        raise IndexError("Invalid orbit index.")
+
+    if spacecraft_index < 0 or spacecraft_index >= solution[orbit_index]:
+        raise IndexError("This spacecraft has not been selected.")
+
+    if phase < PHASE_MIN or phase >= PHASE_MAX:
+        raise ValueError("Phase must be between 0 and 2*pi.")
+
+    phase_index = (
+        num_orbits
+        + orbit_index * MAX_PER_ORBIT
+        + spacecraft_index
+    )
+
+    solution[phase_index] = phase
+
+    return solution
