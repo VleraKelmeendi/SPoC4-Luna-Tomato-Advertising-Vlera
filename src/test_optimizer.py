@@ -1,13 +1,15 @@
-from optimizer import create_empty_solution
+from optimizer import create_empty_solution, set_spacecraft
 
-# Total number of orbits
 num_orbits = 779
 
-# Create an initial solution
 solution = create_empty_solution(num_orbits)
 
-# Check the solution
-print("Number of selections:", len(solution[:num_orbits]))
-print("Number of phases:", len(solution[num_orbits:]))
-print("Total solution length:", len(solution))
-print("Selected spacecraft:", sum(solution[:num_orbits]))
+# Vendosim 3 spacecraft ne orbiten 10
+solution = set_spacecraft(solution, 10, 3)
+
+# Vendosim 2 spacecraft ne orbiten 20
+solution = set_spacecraft(solution, 20, 2)
+
+print("Spacecraft in orbit 10:", solution[10])
+print("Spacecraft in orbit 20:", solution[20])
+print("Total selected spacecraft:", sum(solution[:num_orbits]))
