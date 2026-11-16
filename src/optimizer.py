@@ -31,7 +31,7 @@ def set_spacecraft(solution, orbit_index, number):
     Set the number of spacecraft for a specific orbit.
     """
 
-    num_orbits = 779
+    num_orbits = len(solution) // (MAX_PER_ORBIT + 1)
 
     if number < 0 or number > MAX_PER_ORBIT:
         raise ValueError("Number of spacecraft must be between 0 and 5.")

@@ -1,30 +1,20 @@
 
 import numpy as np
-from itertools import product
 from optimizer import create_empty_solution, set_spacecraft, set_phase
-from lta_udp import celestial_morse_code
 
-udp = celestial_morse_code()
+num_orbits = 779
 
-orbit_indices = [0, 188, 479]
-phases = [0, np.pi / 2, np.pi, 3 * np.pi / 2]
+# 1. Create an empty solution
+solution = create_empty_solution(num_orbits)
 
-best_mse = float("inf")
-best_phases = None
+# 2. Select 2 spacecraft in orbit 10
+set_spacecraft(solution, 10, 2)
 
-for phase_combo in product(phases, repeat=3):
-    solution = create_empty_solution(udp.num_orbits)
+# 3. Set the phase of the first spacecraft
+set_phase(solution, 10, 0, np.pi / 2)
 
-    for orbit_index, phase in zip(orbit_indices, phase_combo):
-        set_spacecraft(solution, orbit_index, 1)
-        set_phase(solution, orbit_index, 0, phase)
-
-    result = udp.fitness(solution, postprocess=True)
-    mse = result[2]
-
-    if mse < best_mse:
-        best_mse = mse
-        best_phases = phase_combo
-
-print("Best MSE:", best_mse)
-print("Best phases:", best_phases)
+# 4. Check the results
+print("Total solution size:", len(solution))
+print("Spacecraft in orbit 10:", solution[10])
+print("Phase of first spacecraft:", solution[num_orbits + 10 * 5])
+print("Tests completed!")
