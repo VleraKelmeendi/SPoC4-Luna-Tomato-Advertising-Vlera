@@ -69,3 +69,17 @@ def set_phase(solution, orbit_index, spacecraft_index, phase):
     solution[phase_index] = phase
 
     return solution
+
+
+def evaluate_solution(udp, solution):
+    result = udp.fitness(solution, postprocess=True)
+
+    objective = result[0]
+    spacecraft = result[1]
+    mse = result[2]
+
+    print("Spacecraft:", spacecraft)
+    print("MSE:", mse)
+    print("Objective:", objective)
+
+    return mse

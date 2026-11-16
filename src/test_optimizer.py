@@ -1,16 +1,18 @@
-from optimizer import create_empty_solution
+
+from optimizer import create_empty_solution, set_spacecraft, set_phase
 from lta_udp import celestial_morse_code
 
-# Initialize the official evaluator
 udp = celestial_morse_code()
 
-# Create an empty solution
 solution = create_empty_solution(udp.num_orbits)
+set_spacecraft(solution, 0, 1)
 
-# Evaluate the solution
-result = udp.fitness(solution, postprocess=True)
+phases_to_test = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0]
 
-print("Number of orbits:", udp.num_orbits)
-print("Objective:", result[0])
-print("Selected spacecraft:", result[1])
-print("MSE:", result[2])
+for phase in phases_to_test:
+    test_solution = solution.copy()
+    set_phase(test_solution, 0, 0, phase)
+
+    result = udp.fitness(test_solution, postprocess=True)
+
+    print("Phase:", phase, "| MSE:", result[2])
