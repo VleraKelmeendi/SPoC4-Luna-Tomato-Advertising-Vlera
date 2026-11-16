@@ -1,4 +1,6 @@
 import numpy as np
+import random
+import math
 
 # Maximum number of spacecraft per orbit
 MAX_PER_ORBIT = 5
@@ -83,3 +85,51 @@ def evaluate_solution(udp, solution):
     print("Objective:", objective)
 
     return mse
+
+
+
+def create_random_solution(udp, num_spacecraft=50):
+    solution = create_empty_solution(udp.num_orbits)
+
+    for _ in range(num_spacecraft):
+        orbit = random.randrange(udp.num_orbits)
+
+        if solution[orbit] < MAX_PER_ORBIT:
+            spacecraft_index = int(solution[orbit])
+
+            set_spacecraft(solution, orbit, spacecraft_index + 1)
+
+            phase = random.uniform(PHASE_MIN, PHASE_MAX)
+            set_phase(solution, orbit, spacecraft_index, phase)
+
+    return solution
+
+
+def create_neighbor(solution, udp):
+    new_solution = solution.copy()
+
+    orbit = random.randrange(udp.num_orbits)
+    number = int(new_solution[orbit])
+
+    if number == 0:
+        set_spacecraft(new_solution, orbit, 1)
+        set_phase(
+            new_solution,
+            orbit,
+            0,
+            random.uniform(PHASE_MIN, PHASE_MAX)
+        )
+
+    elif number < MAX_PER_ORBIT:
+        set_spacecraft(new_solution, orbit, number + 1)
+        set_phase(
+            new_solution,
+            orbit,
+            number,
+            random.uniform(PHASE_MIN, PHASE_MAX)
+        )
+
+    else:
+        set_spacecraft(new_solution, orbit, number - 1)
+
+    return new_solution
