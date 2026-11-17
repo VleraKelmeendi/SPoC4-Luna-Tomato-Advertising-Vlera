@@ -11,16 +11,18 @@ from optimizer import (
     create_random_solution,
     create_neighbor,
     simulated_annealing,
-    create_seeded_solution
+    create_seeded_solution,
+    improve_phases
 )
 
-
+import os
+os.makedirs("results", exist_ok=True)
 # 1. Krijojme UDP
 udp = celestial_morse_code()
-
-# 2. Testojme krijimin e zgjidhjes bosh
 num_orbits = udp.num_orbits
 
+
+# 2. Testojme krijimin e zgjidhjes bosh
 solution = create_empty_solution(num_orbits)
 
 set_spacecraft(solution, 10, 2)
@@ -74,40 +76,111 @@ print(
 )
 
 
-# 5. Testojme Simulated Annealing
+# 5. Ngarkojme zgjidhjen me te mire
 print("\n--- SIMULATED ANNEALING ---")
 
+try:
+    previous_best = np.load("results/best_solution.npy")
+    print("Previous best solution loaded!")
+
+except FileNotFoundError:
+    previous_best = create_seeded_solution(udp)
+    print("Starting from seeded solution!")
+
+
+# 6. Ekzekutojme Simulated Annealing
 best = simulated_annealing(
     udp,
-    iterations=100,
-    initial_temperature=10,
+    initial_solution=previous_best,
+    iterations=200,
+    initial_temperature=5,
     cooling_rate=0.999
 )
 
-print("Best solution size:", len(best))
+
+# 7. Krahasojme zgjidhjen e re me te vjetren
+old_fitness = udp.fitness(
+    previous_best, postprocess=True
+)[0][0]
+
+new_fitness = udp.fitness(
+    best, postprocess=True
+)[0][0]
+
+print("\n--- BEST SOLUTION COMPARISON ---")
+print("Previous fitness:", old_fitness)
+print("New fitness:", new_fitness)
+
+if new_fitness < old_fitness:
+    best_solution = best
+    print("New best solution found!")
+else:
+    best_solution = previous_best
+    print("Previous best solution preserved!")
+
+
+# 8. Ruajme zgjidhjen me te mire
+np.save("results/best_solution.npy", best_solution)
+
+print("\n--- FINAL BEST SOLUTION ---")
 print(
-    "Best spacecraft:",
-    int(np.sum(best[:num_orbits]))
+    "Spacecraft:",
+    int(np.sum(best_solution[:num_orbits]))
 )
 
-evaluate_solution(udp, best)
+evaluate_solution(udp, best_solution)
+
+print("\n--- PHASE OPTIMIZATION ---")
+
+improved_solution = improve_phases(
+    udp,
+    best_solution,
+    trials=3
+)
+
+old_fitness = udp.fitness(
+    best_solution, postprocess=True
+)[0][0]
+
+new_fitness = udp.fitness(
+    improved_solution, postprocess=True
+)[0][0]
+
+if new_fitness < old_fitness:
+    best_solution = improved_solution
+    np.save("results/best_solution.npy", best_solution)
+    print("Phase optimization improved the solution!")
+else:
+    print("Previous best solution preserved!")
+
+evaluate_solution(udp, best_solution)
+
+print("\n--- SELECTED ORBITS AND PHASES ---")
+
+for orbit in range(num_orbits):
+    count = int(best_solution[orbit])
+
+    for spacecraft_index in range(count):
+        phase_index = (
+            num_orbits
+            + orbit * 5
+            + spacecraft_index
+        )
+
+        phase = best_solution[phase_index]
+
+        print(
+            f"Orbit: {orbit}, "
+            f"Spacecraft: {spacecraft_index}, "
+            f"Phase: {phase:.6f}"
+        )
 
 
-# 6. Ruajme zgjidhjen me te mire
-np.save("results/best_solution.npy", best)
-
-print("\nBest solution saved successfully!")
-
-
-# 7. Testojme nese zgjidhja u ruajt sakte
-previous_best = np.load("results/best_solution.npy")
-
-print("\n--- LOADED BEST SOLUTION ---")
-evaluate_solution(udp, previous_best)
-
-
-# 8. Testojme seeded solution
+# 9. Testojme seeded solution
 seeded = create_seeded_solution(udp)
 
 print("\n--- SEEDED SOLUTION ---")
 evaluate_solution(udp, seeded)
+
+np.save("results/best_solution.npy", best_solution)
+print("BEST SOLUTION SAVED!")
