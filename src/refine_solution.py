@@ -22,7 +22,7 @@ best_fitness = udp.fitness(
 
 # Perserisim optimizimin e fazave 3 here
 for iteration in range(1):
-    print(f"\n--- PHASE OPTIMIZATION {iteration + 1}/3 ---")
+    print(f"\n--- PHASE OPTIMIZATION {iteration + 1}/1 ---")
 
     improved_solution = improve_phases(
         udp, best_solution, trials=2
