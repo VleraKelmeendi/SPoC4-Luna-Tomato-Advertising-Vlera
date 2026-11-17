@@ -105,31 +105,133 @@ def create_random_solution(udp, num_spacecraft=50):
     return solution
 
 
+
+
 def create_neighbor(solution, udp):
     new_solution = solution.copy()
 
-    orbit = random.randrange(udp.num_orbits)
-    number = int(new_solution[orbit])
+    # Gjejme orbitat ku mund te bejme ndryshime
+    counts = new_solution[:udp.num_orbits].astype(int)
 
-    if number == 0:
-        set_spacecraft(new_solution, orbit, 1)
-        set_phase(
-            new_solution,
-            orbit,
-            0,
-            random.uniform(PHASE_MIN, PHASE_MAX)
-        )
+    add_orbits = np.where(counts < MAX_PER_ORBIT)[0]
+    remove_orbits = np.where(counts > 0)[0]
 
-    elif number < MAX_PER_ORBIT:
+    # Zgjedhim nje operacion
+    operation = random.choice(["add", "remove", "phase"])
+
+    if operation == "add" and len(add_orbits) > 0:
+
+        orbit = random.choice(add_orbits)
+        number = int(new_solution[orbit])
+
         set_spacecraft(new_solution, orbit, number + 1)
-        set_phase(
-            new_solution,
-            orbit,
-            number,
-            random.uniform(PHASE_MIN, PHASE_MAX)
-        )
 
-    else:
+        phase = random.random() * PHASE_MAX
+        set_phase(new_solution, orbit, number, phase)
+
+    elif operation == "remove" and len(remove_orbits) > 0:
+
+        orbit = random.choice(remove_orbits)
+        number = int(new_solution[orbit])
+
         set_spacecraft(new_solution, orbit, number - 1)
 
+    else:
+        if len(remove_orbits) > 0:
+
+            orbit = random.choice(remove_orbits)
+            number = int(new_solution[orbit])
+
+            spacecraft_index = random.randrange(number)
+
+            phase = random.random() * PHASE_MAX
+
+            phase_index = (
+                udp.num_orbits
+                + orbit * MAX_PER_ORBIT
+                + spacecraft_index
+            )
+
+            new_solution[phase_index] = phase
+
     return new_solution
+
+
+
+
+def simulated_annealing(
+    udp,
+    num_spacecraft=50,
+    initial_temperature=10,
+    cooling_rate=0.999,
+    iterations=300,
+    initial_solution=None
+):
+    # Nese kemi zgjidhje paraprake, vazhdojme prej saj
+    if initial_solution is None:
+        current_solution = create_seeded_solution(udp)
+    else:
+        current_solution = initial_solution.copy()
+
+    best_solution = current_solution.copy()
+
+    current_fitness = udp.fitness(
+        current_solution, postprocess=True
+    )[0][0]
+
+    best_fitness = current_fitness
+
+    print("SA starting fitness:", current_fitness)
+
+    temperature = initial_temperature
+
+    for _ in range(iterations):
+
+        neighbor = create_neighbor(current_solution, udp)
+
+        neighbor_fitness = udp.fitness(
+            neighbor, postprocess=True
+        )[0][0]
+
+        delta = neighbor_fitness - current_fitness
+
+        if delta < 0:
+            current_solution = neighbor
+            current_fitness = neighbor_fitness
+
+        else:
+            probability = math.exp(-delta / temperature)
+
+            if random.random() < probability:
+                current_solution = neighbor
+                current_fitness = neighbor_fitness
+
+        if current_fitness < best_fitness:
+            best_solution = current_solution.copy()
+            best_fitness = current_fitness
+
+        temperature *= cooling_rate
+
+    print("SA best fitness:", best_fitness)
+
+    return best_solution
+
+
+
+def create_seeded_solution(udp):
+    # Krijojme zgjidhje bosh
+    solution = create_empty_solution(udp.num_orbits)
+
+    # Orbitat dhe fazat nga eksperimentet tona
+    selected_orbits = [
+        (162, 0.0),
+        (399, np.pi),
+        (408, 5.4978)
+    ]
+
+    # Vendosim nga nje spacecraft ne secilen orbite
+    for orbit, phase in selected_orbits:
+        set_spacecraft(solution, orbit, 1)
+        set_phase(solution, orbit, 0, phase)
+
+    return solution
